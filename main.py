@@ -19,6 +19,7 @@ async def search(query:str = None, state:str = None, response: fastapi.Response 
         return {"message": "No query provided"}
     
     if state == "submitting" :
+        
         elastic_search_response = elastic_client.search(index=search_index, body=get_submitting_query(query))
 
         response_hits = elastic_search_response["hits"]["hits"]
@@ -40,7 +41,6 @@ async def search(query:str = None, state:str = None, response: fastapi.Response 
                  search_responses.append(search_response)
             
         final_response = process_search_response(search_responses)
-
         return { 
                 "status":"ok", 
                 "data" : final_response

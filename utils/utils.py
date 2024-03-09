@@ -1,12 +1,12 @@
 def get_response_type(data):
+    
     types = set()
-    findings = data.keys()
 
-    for field in findings:
+    for field, value in data.items():
         if field.startswith("title") or field.startswith("description"):
             types.add("course")
         elif field.startswith("detail.category"):
-            types.add("category")
+            types.add(f"category-{value}")
         elif field.startswith("detail.instructor"):
             types.add("instructor")
     
@@ -39,13 +39,25 @@ def get_description(data, type):
 def get_search_response_data(type: str, **data,):
     id = data["data"]["_id"]
     source_data = data["data"]["_source"]
-    highlight = data["data"]["highlight"]
 
     title = get_title(source_data, type)
     description = get_description(source_data, type)
-    url = get_cta_url(type, title, id) if title else None
+    url = get_cta_url(type, title, id)
 
-   
+    # Handle 'category' type with a list of items
+    if type.startswith("category"):
+        categories = source_data["detail"][type.split("-")[0]]
+        _category = type.split("-")[1].replace("<em>", "").replace("</em>", "")
+        # Create a list of DTOs for each category
+        res = []
+        for category in categories :
+            if category.get("title", "") and category.get("title") in _category:
+                res.append({
+                        "title": category.get("title", ""),
+                        "description": "category",
+                        "url": get_cta_url(type, category.get("title", ""), id)
+                    })
+        return res 
 
     # Return a single DTO for types other than 'category'
     return {

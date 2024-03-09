@@ -20,12 +20,18 @@ def get_elasticsearch_client():
     return ElasticsearchClient.get_instance()
 
 
-def get_submitting_query(query:str):
+def get_submitting_query(query:str, page:int=1, size:int=10):
     return {
         "query": {
             "query_string": {
-                "query": f"*{query}*",
-                "default_operator": "AND"
+                "query": f"{query}*",
+                "default_operator": "AND",
+                "fields": [
+                    "detail.category.title^4",
+                    "title^3",
+                    "description^2",
+                    "detail.instructor.title^1"
+                ]
             }
         },
         "highlight": {
@@ -34,6 +40,25 @@ def get_submitting_query(query:str):
             }
         }    
     }
+    #  return {
+    #     "query":{
+    #         "multi_match": {
+    #         "query": query,
+    #         "type": "bool_prefix",
+    #         "fields": [
+    #             "detail.category.title^4",
+    #             "title^3",
+    #             "description^2",
+    #             "detail.instructor.title",
+    #         ]
+    #     },
+    #     },
+    #     "highlight": {
+    #         "fields": {
+    #             "*": {}
+    #         }
+    #     }    
+    # }
 
 def get_submitted_query(query:str):
     return {
