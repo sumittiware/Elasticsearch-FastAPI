@@ -3,6 +3,8 @@ from config.config import config
 
 search_index = "search-search-dev"
 course_index = "search-course-dev"
+categpry_index  = "search-category-dev"
+instructor_index = "search-instructor-dev"
 
 class ElasticsearchClient:
     _instance = None
@@ -22,11 +24,14 @@ def get_elasticsearch_client():
 
 def get_submitting_query(query:str, page:int=1, size:int=10):
     return {
+        "from": (page - 1) * size,
+        "size": size,
         "query": {
             "query_string": {
                 "query": f"{query}*",
                 "default_operator": "AND",
                 "fields": [
+                    # Boost the title field
                     "detail.category.title^4",
                     "title^3",
                     "description^2",
@@ -40,43 +45,36 @@ def get_submitting_query(query:str, page:int=1, size:int=10):
             }
         }    
     }
-    #  return {
-    #     "query":{
-    #         "multi_match": {
-    #         "query": query,
-    #         "type": "bool_prefix",
-    #         "fields": [
-    #             "detail.category.title^4",
-    #             "title^3",
-    #             "description^2",
-    #             "detail.instructor.title",
-    #         ]
-    #     },
-    #     },
-    #     "highlight": {
-    #         "fields": {
-    #             "*": {}
-    #         }
-    #     }    
-    # }
 
-def get_submitted_query(query:str):
+def get_submitted_query(query:str,type:str,page:int=1, size:int=10):
     return {
+        "from": (page - 1) * size,
+        "size": size,
         "query": {
-            "multi_match": {
-                "fields": ["*"],
-                "query": query
-            }
+            "bool": {
+                "must": {
+                    "multi_match": {
+                        "fields": ["*"],
+                        "query": "f{query}*"
+                    }
+                },
+                "filter": {
+                    "term": {
+                    "result_type": "f{str}"
+                    }
+                }
+            }   
         },
         "highlight": {
             "fields": {
-                "*": {}
+            "*": {}
             }
         },
         "_source": False
     }
 
-def get_course_query(ids):
+
+def get_id_query(ids):
     return {
         "query": {
             "bool": {
