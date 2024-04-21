@@ -1,3 +1,3 @@
-## Search Service using the ElasticSearch.
+# Search Service.
 
-# Tech stack : Python, FastApi, ElasticSearch.
+## Tech stack : Python, FastApi, ElasticSearch.
